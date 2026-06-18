@@ -1,0 +1,19 @@
+torch
+torchvision
+transformers
+datasets
+pillow
+numpy
+pandas
+scikit-learn
+pydantic
+python-dotenv
+tqdm
+diffusers
+accelerate
+safetensors
+open_clip_torch
+faiss-cpu
+streamlit
+
+fashion-clip # model
