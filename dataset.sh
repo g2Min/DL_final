@@ -1,6 +1,6 @@
 #!/bin/bash
 set -a
-source ./.env
+source /workspace/PatchVDR/.env
 set +a
 
 unset SSL_CERT_FILE  # 이 줄 추가
@@ -14,7 +14,7 @@ from huggingface_hub import snapshot_download
 snapshot_download(
     repo_id="ashraq/fashion-product-images-small",
     repo_type="dataset",
-    local_dir="./datasets",
+    local_dir="./datasets/garments",
     token=os.environ["HF_TOKEN"],
     max_workers=1,
 )

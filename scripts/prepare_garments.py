@@ -5,7 +5,7 @@ from datasets import load_dataset
 from tqdm import tqdm
 
 """
-필요한 옷만 필터링
+캐릭터 옷 입히기에 필요한 항목만 사용함
 """
 
 OUTPUT_ROOT = Path("datasets/garments")

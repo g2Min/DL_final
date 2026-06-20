@@ -1,3 +1,8 @@
+"""
+articleType 데이터셋은 분류
+"""
+
+
 CATEGORY_MAPPING = {
     "Tops": "top",
     "Tshirts": "top",
@@ -7,12 +12,15 @@ CATEGORY_MAPPING = {
     "Lounge Tshirts": "top",
 
     "Jackets": "outerwear",
-    "Rain Jacket": "outwear",
-    "Nehru Jackets": "outwear",
+    "Rain Jacket": "outerwear",
+    "Nehru Jackets": "outerwear",
     "Waistcoat": "outerwear",
-    "Swimwear": "outerwear",
     "Tracksuits": "outerwear",
     "Night suits": "outerwear",
+
+    # 수영복: 상하의 세트 또는 원피스로 전신 처리
+    "Swimwear": "swimwear",
+    "Trunk": "swimwear",
 
     "Jeans": "bottom",
     "Trousers": "bottom",
@@ -20,7 +28,6 @@ CATEGORY_MAPPING = {
     "Lounge Shorts": "bottom",
     "Track Pants": "bottom",
     "Lounge Pants": "bottom",
-    "Trunk": "bottom",
 
     "Caps": "hat",
 
@@ -28,7 +35,7 @@ CATEGORY_MAPPING = {
     "Handbags": "bag",
     "Messenger Bag": "bag",
     "Duffel Bag": "bag",
-    
+
     "Salwar": "dress",
     "Nightdress": "dress",
 }
