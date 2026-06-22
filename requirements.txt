@@ -1,0 +1,24 @@
+torch==2.5.1
+torchvision==0.20.1
+torchaudio==2.5.1
+transformers==4.50.0
+datasets
+pillow
+numpy
+pandas
+scikit-learn
+pydantic>=2
+python-dotenv
+tqdm
+diffusers
+accelerate
+safetensors
+open_clip_torch
+faiss-cpu
+streamlit
+fastapi
+uvicorn
+requests
+ipywidgets
+
+fashion-clip # model

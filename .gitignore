@@ -1,0 +1,9 @@
+vllm_server.log
+.env
+datasets/garments/*
+datasets/outputs/*
+.vscode
+__pycache__/*
+*.py[cod]
+
+client/node_modules/*
