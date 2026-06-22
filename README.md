@@ -51,13 +51,6 @@ python -c "import torch; print(torch.__version__); print(torch.cuda.is_available
 
 #### 2) 컨테이너를 활용한 환경 구축
 
-#### Prerequisites
-
-- Docker Engine 또는 Docker Desktop
-- CUDA 12.6을 사용할 수 있는 NVIDIA GPU driver
-- NVIDIA Container Toolkit 또는 Docker Desktop GPU support
-- Git Bash, PowerShell, 또는 다른 터미널
-
 #### Build the Docker image
 
 프로젝트 루트 디렉터리에서 실행합니다.
