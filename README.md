@@ -40,7 +40,7 @@ cd DL_final
 ```bash
 conda create -n final python=3.11 -y
 conda activate final
-conda install pytorch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 pytorch-cuda=12.6 -c pytorch -c nvidia
+conda install pytorch==2.5.1 torchvision==0.20.1 torchaudio==2.5.1 pytorch-cuda=12.1 -c pytorch -c nvidia
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
 ```
