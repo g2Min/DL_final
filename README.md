@@ -123,6 +123,4 @@ bash scripts/start_web.sh
 | --- | --- |
 | ![배경화면](datasets/assets/report/original.png) | ![가을캠핑](datasets/assets/report/camping.png) |
 
-| 시연 비디오 |
-| --- |
-| [datasets](https://github.com/g2Min/DL_final/blob/main/datasets/process.mp4) |
+
