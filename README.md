@@ -20,11 +20,11 @@ LLM 은 상황분석 (`SituationParser`)과 의상변환 (`GarmentAdapter`) 에 
 stable-diffusion-xl-1.0-inpainting-0.1 모델을 사용하여 `3.` 에서 검색된 의상을 생성함. <br/>
 IP-adapter 로 캐릭터 스타일에 맞게 좀더 정교하게 재현함.
 
-| fastapi 를 활용하여 서버를 구축하고 react + vite 프레임워크로 클라이언트 UI를 구현함
+> fastapi 를 활용하여 서버를 구축하고 react + vite 프레임워크로 클라이언트 UI를 구현함
 
 ## 2. 환경 세팅
 
-| `vLLM` 서버 플랫폼을 구동하기 위해 `A-series` gpu 사양이 필요합니다.
+> `vLLM` 서버 플랫폼을 구동하기 위해 `A-series` gpu 사양이 필요합니다.
 
 아래 두 가지 방법 중 하나를 선택하여 환경을 구축할 수 있습니다.
 
