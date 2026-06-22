@@ -12,6 +12,8 @@ top-k 의상 조합 전체를 N개 GPU에서 병렬 생성하는 스크립트.
 import itertools
 import json
 import os
+import signal
+import sys
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from multiprocessing import Process, Queue
 from pathlib import Path
@@ -41,6 +43,8 @@ def _gpu_worker(
     os.environ["CUDA_VISIBLE_DEVICES"] = str(gpu_id)
 
     # spawn 이후 import — CUDA_VISIBLE_DEVICES가 먼저 설정된 상태
+    from PIL import Image as PILImage
+
     from src.outfit_generator import OutfitGenerator
     from src.prompt_builder import PromptBuilder
     from src.schema import (
@@ -50,6 +54,23 @@ def _gpu_worker(
         CharacterOutfitSpec,
     )
 
+    def _load_ip_images(
+        selected: dict,
+        categories: frozenset,
+    ) -> list | None:
+        images = []
+        for cat, item in selected.items():
+            if cat in categories:
+                path = item.get("image_path", "")
+                if path:
+                    try:
+                        images.append(PILImage.open(path).convert("RGB"))
+                    except Exception:
+                        pass
+        return images if images else None
+
+    import torch
+
     generator = OutfitGenerator()  # cuda:0 = 물리적 gpu_id
     prompt_builder = PromptBuilder()
     negative_prompt = prompt_builder.build_negative()
@@ -58,6 +79,7 @@ def _gpu_worker(
     for task in tasks:
         combo_idx: int = task["combo_idx"]
         seed: int = task["seed"]
+        selected_items: dict = task["selected_items"]
         outfit_spec = CharacterOutfitSpec.model_validate(
             task["outfit_spec"]
         )
@@ -79,6 +101,9 @@ def _gpu_worker(
                 positive_prompt=pos,
                 negative_prompt=negative_prompt,
                 output_path=out / f"combo_{combo_idx:03d}_full.png",
+                ip_adapter_images=_load_ip_images(
+                    selected_items, FULL_BODY_CATEGORIES
+                ),
                 seed=seed,
             )
             generated_paths["full"] = str(path)
@@ -95,6 +120,9 @@ def _gpu_worker(
                 negative_prompt=negative_prompt,
                 output_path=out / f"combo_{combo_idx:03d}_upper.png",
                 base_image=current_image,
+                ip_adapter_images=_load_ip_images(
+                    selected_items, UPPER_BODY_CATEGORIES
+                ),
                 seed=seed,
             )
             generated_paths["upper"] = str(path)
@@ -111,6 +139,9 @@ def _gpu_worker(
                 negative_prompt=negative_prompt,
                 output_path=out / f"combo_{combo_idx:03d}_lower.png",
                 base_image=current_image,
+                ip_adapter_images=_load_ip_images(
+                    selected_items, LOWER_BODY_CATEGORIES
+                ),
                 seed=seed,
             )
             generated_paths["lower"] = str(path)
@@ -124,6 +155,7 @@ def _gpu_worker(
                 "selected_items": task["selected_items"],
             }
         )
+        torch.cuda.empty_cache()
 
     result_queue.put(None)  # sentinel: 이 워커 완료
 
@@ -131,29 +163,52 @@ def _gpu_worker(
 # ── 메인 ─────────────────────────────────────────────────────────────────────
 
 def main() -> None:
-    NUM_GPUS = 7
-    TOP_K = 3
-    SEED = 42
+    import argparse
 
-    USER_TEXT = (
-        "고양이 캐릭터가 가을에 캠핑을 가. "
+    parser = argparse.ArgumentParser(description="Animal outfit pipeline")
+    parser.add_argument("--user-text", type=str, default=(
+        "다람쥐 캐릭터가 가을에 캠핑을 가. "
         "따뜻하고 움직이기 편한 옷을 추천해서 "
         "입혀줘. 귀와 꼬리는 가리지 마."
-    )
-    CHARACTER_PATH = "datasets/characters/squirrel.png"
-    TOP_MASK_PATH = "datasets/characters/masking/squirrel_top.png"
-    BOTTOM_MASK_PATH = "datasets/characters/masking/squirrel_bottom.png"
-    ALL_MASK_PATH = "datasets/characters/masking/squirrel_all.png"
-    OUTPUT_DIR = "datasets/outputs/camping_parallel"
+    ))
+    parser.add_argument("--character-path", type=str,
+                        default="datasets/characters/squirrel.png")
+    parser.add_argument("--top-mask-path", type=str,
+                        default="datasets/characters/masking/squirrel/squirrel_top.png")
+    parser.add_argument("--bottom-mask-path", type=str,
+                        default="datasets/characters/masking/squirrel/squirrel_bottom.png")
+    parser.add_argument("--all-mask-path", type=str,
+                        default="datasets/characters/masking/squirrel/squirrel_all.png")
+    parser.add_argument("--output-dir", type=str,
+                        default="datasets/outputs/camping_parallel2")
+    parser.add_argument("--num-gpus", type=int, default=7)
+    parser.add_argument("--top-k", type=int, default=3)
+    parser.add_argument("--seed", type=int, default=42)
+    args = parser.parse_args()
+
+    NUM_GPUS = args.num_gpus
+    TOP_K = args.top_k
+    SEED = args.seed
+
+    USER_TEXT = args.user_text
+    CHARACTER_PATH = args.character_path
+    TOP_MASK_PATH = args.top_mask_path or None
+    BOTTOM_MASK_PATH = args.bottom_mask_path or None
+    ALL_MASK_PATH = args.all_mask_path or None
+    OUTPUT_DIR = args.output_dir
 
     Path(OUTPUT_DIR).mkdir(parents=True, exist_ok=True)
 
-    # ── 1. 상황 분석 + 의상 검색 ──────────────────────────────────────────
+    # 1. 상황 분석(SituationParser) + 의상 검색 (GarmentRetriever)
     print("▶ 상황 분석 및 의상 검색 중...")
-    llm_client = StructuredLLMClient(model_id="Qwen/Qwen3-32B")
+    llm_client = StructuredLLMClient(
+        model_id="Qwen/Qwen2.5-7B-Instruct",
+        base_url="http://localhost:8000/v1",
+    )
     pipeline = AnimalOutfitPipeline(
         situation_parser=SituationParser(llm_client),
-        retriever=GarmentRetriever(
+        # 카테고리별 top-k 검색
+        retriever=GarmentRetriever( 
             metadata_path="datasets/garments/metadata.jsonl",
             embeddings_path="datasets/garments/embeddings.npy",
         ),
@@ -177,7 +232,7 @@ def main() -> None:
     if not combinations:
         raise RuntimeError("검색된 의상 조합이 없습니다.")
 
-    # ── 2. 조합별 의상 명세 변환 (LLM, I/O bound → 스레드 병렬) ──────────
+    # 2. 조합별 의상 명세 변환 (LLM, I/O bound → 스레드 병렬) 
     print(f"\n▶ 의상 명세 변환 중 (ThreadPoolExecutor)...")
     adapter = GarmentAdapter(llm_client)
     adapted: dict[int, dict] = {}
@@ -202,7 +257,7 @@ def main() -> None:
             adapted[idx] = spec_dict
             print(f"  [{len(adapted):>{len(str(n_combos))}}/{n_combos}] 조합 {idx:03d} 변환 완료")
 
-    # ── 3. 태스크 리스트 구성 + GPU별 분배 ────────────────────────────────
+    # 3. 태스크 리스트 구성 (top-k) + 여러 조합인 경우 GPU별 분배
     tasks = [
         {
             "combo_idx": idx,
@@ -219,10 +274,22 @@ def main() -> None:
     for idx, task in enumerate(tasks):
         chunks[idx % num_workers].append(task)
 
-    # ── 4. GPU 워커 프로세스 실행 ──────────────────────────────────────────
+    # 4. GPU 워커 프로세스 실행
     print(f"\n▶ {num_workers}개 GPU에서 이미지 생성 시작...")
     result_queue: Queue = Queue()
     processes: list[Process] = []
+
+    def _terminate_all(signum=None, frame=None):
+        print("\n중단 신호 수신 — 워커 프로세스 종료 중...")
+        for p in processes:
+            if p.is_alive():
+                p.terminate()
+        for p in processes:
+            p.join(timeout=5)
+        sys.exit(1)
+
+    signal.signal(signal.SIGINT, _terminate_all)
+    signal.signal(signal.SIGTERM, _terminate_all)
 
     for gpu_id, chunk in enumerate(chunks):
         if not chunk:
@@ -244,7 +311,7 @@ def main() -> None:
         processes.append(p)
         print(f"  GPU {gpu_id}: {len(chunk)}개 조합 할당")
 
-    # ── 5. 결과 수집 ──────────────────────────────────────────────────────
+    # 5. 결과 수집
     all_results: list[dict] = []
     sentinels = 0
 
@@ -267,7 +334,7 @@ def main() -> None:
 
     all_results.sort(key=lambda r: r["combo_idx"])
 
-    # ── 6. 결과 저장 ──────────────────────────────────────────────────────
+    # 6. 결과 저장
     result_data = {
         "analysis": analysis.model_dump(),
         "candidates": candidates,
