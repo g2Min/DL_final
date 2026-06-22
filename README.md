@@ -22,6 +22,8 @@ IP-adapter 로 캐릭터 스타일에 맞게 좀더 정교하게 재현함.
 
 > fastapi 를 활용하여 서버를 구축하고 react + vite 프레임워크로 클라이언트 UI를 구현함
 
+<br/>
+
 ## 2. 환경 세팅
 
 > `vLLM` 서버 플랫폼을 구동하기 위해 `A-series` gpu 사양이 필요합니다.
@@ -70,6 +72,8 @@ docker run -it --gpus all \
   final:1.0
 ```
 
+<br/>
+
 ## 3. 실행 방법
 
 ### 1) 데이터셋 전처리
@@ -110,6 +114,8 @@ bash scripts/start_all.sh
 ```
 bash scripts/start_web.sh
 ```
+
+<br/>
 
 ### 4. 결과물
 
