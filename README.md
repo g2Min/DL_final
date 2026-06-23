@@ -98,13 +98,13 @@ docker run -it --gpus all \
   캐릭터의 상의, 하의에 필요한 카테고리들만 따로 필터링
   ```
   # output: metadata.jsonl
-  python scripts/prepare_garments.py
+  python -m scripts.prepare_garments
   ```
 
   필터링된 옷 datasets 들에 대해서 임베딩 진행
   ```
   # output: embeddings.npy
-  python scripts/build_embeddings.py
+  python -m scripts.build_embeddings
   ```
 
 
@@ -121,7 +121,17 @@ bash scripts/start_web.sh
 
 <br/>
 
-## 4. 결과물
+## 4. 기능 시연
+
+간단한 기능 시연만 원하는 경우 다음 명령어만 입력 <br/>
+
+결과물 : `datasets/outpus/camping_parallel2`
+
+```
+python -m scripts.demo
+```
+
+## 5. 결과물
 
 | 원본 | 프롬프팅 결과|
 | --- | --- |
