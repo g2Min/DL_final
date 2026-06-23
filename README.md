@@ -4,22 +4,22 @@
 
 ---
 
-1. SAM으로 캐릭터  부위 마스킹
+1. SAM으로 캐릭터  부위 마스킹 <br/>
 
   SAM 을 활용하여 6종의 동물 캐릭터 (다람쥐, 너구리, 곰, 고양이, 햄스터, 강아지) 의 상체/ 하체/ 전신 영역을 마스킹. <br/>
   생성된 마스크는 `datasets/characters/masking/{character}` 에 저장되며 이후 diffusion 모델의 inpainting 단계에서 어느 신체 부위에 의상이 입힐지 사용됨.
 
-2. Qwen2.5-7B + vLLM 서버로 빠른 LLM 추론
+2. Qwen2.5-7B + vLLM 서버로 빠른 LLM 추론 <br/>
 
   LLM 은 상황분석 (`SituationParser`)과 의상변환 (`GarmentAdapter`) 에 사용됨. <br/>
 - 상황분석: 사용자가 입력한 자연어를 계절, 활동, 스타일, 색상 등의 구조화된 JSON으로 파싱함. <br/>
 - 의상변환: 실제 패션 아이템을 "동물 캐릭터 의상" 으로 리사이징.
 
-3. FashionCLIP 으로 의상 검색
+3. FashionCLIP 으로 의상 검색 <br/>
 
   미리 임베딩해둔 2000 개 이상의 의상 데이터를 바탕으로 사용자 조건에 알맞은 의상을 빠르게 검색함.
 
-4. stable Diffusion 모델 + IP-adapter 로 의상 생성
+4. stable Diffusion 모델 + IP-adapter 로 의상 생성 <br/>
 
   stable-diffusion-xl-1.0-inpainting-0.1 모델을 사용하여 `3.` 에서 검색된 의상을 생성함. <br/>
   IP-adapter 로 캐릭터 스타일에 맞게 좀더 정교하게 재현함.
