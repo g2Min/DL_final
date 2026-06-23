@@ -127,4 +127,8 @@ bash scripts/start_web.sh
 | --- | --- |
 | ![배경화면](datasets/assets/report/original.png) | ![가을캠핑](datasets/assets/report/camping.png) |
 
+---
 
+| 시연영상 |
+| --- |
+| [![video](https://img.youtube.com/vi/Rkkva89j62I/0.jpg)](https://youtu.be/Rkkva89j62I) |
