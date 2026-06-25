@@ -139,6 +139,6 @@ python -m scripts.demo
 
 ---
 
-| 시연영상 |
+| [시연영상](https://youtu.be/Rkkva89j62I) |
 | --- |
 | [![video](https://img.youtube.com/vi/Rkkva89j62I/0.jpg)](https://youtu.be/Rkkva89j62I) |
